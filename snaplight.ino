@@ -9,14 +9,27 @@ const int servoPin = D1;  //declare variable for servo
 int pos = 0;        //variable to keep track of the servo's position
 bool flag = 1;      //variable to keep track of the button presses
 
+// Forward define functions
+int forceHigh();
+int forceLow();
+int forceToggle();
+int toggle(String command);
 
 // This routine runs only once upon reset
 void setup()
 {
-  Serial.begin(9600);//Start the Serial port @ 9600 baud
-  Serial.println("Setting up...");
+    Particle.function("toggle", toggle);
+    Serial.begin(9600);//Start the Serial port @ 9600 baud
+    pinMode(button, INPUT_PULLUP);   // sets button pin as input with internal pullup resistor
+}
 
-  pinMode(button, INPUT_PULLUP);   // sets button pin as input with internal pullup resistor
+// This routine loops forever
+void loop()
+{
+    if (digitalRead(button) == LOW) //if a button press has been detected...
+    {
+        forceToggle();
+    }
 }
 
 // Force servo down without controls.
@@ -44,10 +57,11 @@ int forceLow()
     servo.detach();
 }
 
-// Toggle the light on/off
-int toggle()
+// Toggle the light on/off by brute force
+int forceToggle()
 {
     Serial.println("toggling");
+    Particle.publish("toggling");
 
     //This is known a s state machine.
     //It will move the servo to the opposite end from where it's set currently
@@ -64,11 +78,8 @@ int toggle()
     Serial.println(servo.read());  //prints to the serial port to keep track of the position
 }
 
-// This routine loops forever
-void loop()
+// Toggle the light on/off - Exposed to Particle
+int toggle(String command)
 {
-    if (digitalRead(button) == LOW) //if a button press has been detected...
-    {
-        toggle();
-    }
+    forceToggle();
 }
